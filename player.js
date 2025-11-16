@@ -90,12 +90,7 @@ class Player extends Boid {
       // Taille de l'image basée sur le rayon du joueur
       let imgSize = this.r * 2.5;
       image(Player.image, 0, 0, imgSize, imgSize);
-    } else {
-      // Fallback : cercle simple si l'image n'est pas chargée
-      fill(100, 150, 200);
-      noStroke();
-      ellipse(0, 0, this.r * 2, this.r * 2);
-    }
+    } 
     
     pop();
     
