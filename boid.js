@@ -335,6 +335,46 @@ class Boid {
     return steering;
   }
 
+  // BOUNDARIES - Reste dans les limites définies (bx, by, bw, bh)
+  boundaries(bx, by, bw, bh, d) {
+    let vitesseDesiree = null;
+    
+    // Définition des limites avec marge d
+    const xBordGauche = bx + d;
+    const xBordDroite = bx + bw - d;
+    const yBordHaut = by + d;
+    const yBordBas = by + bh - d;
+    
+    // Vérification proximité bords horizontaux
+    if (this.pos.x < xBordGauche) {
+      // Trop à gauche : force vers la droite
+      vitesseDesiree = createVector(this.maxSpeed, this.vel.y);
+    } else if (this.pos.x > xBordDroite) {
+      // Trop à droite : force vers la gauche
+      vitesseDesiree = createVector(-this.maxSpeed, this.vel.y);
+    }
+    
+    // Vérification proximité bords verticaux
+    if (this.pos.y < yBordHaut) {
+      // Trop en haut : force vers le bas
+      vitesseDesiree = createVector(this.vel.x, this.maxSpeed);
+    } else if (this.pos.y > yBordBas) {
+      // Trop en bas : force vers le haut
+      vitesseDesiree = createVector(this.vel.x, -this.maxSpeed);
+    }
+    
+    // Si on est près d'un bord, calculer la force de steering
+    if (vitesseDesiree !== null) {
+      vitesseDesiree.setMag(this.maxSpeed);
+      let force = p5.Vector.sub(vitesseDesiree, this.vel);
+      force.limit(this.maxForce);
+      return force;
+    }
+    
+    // Si on est loin des bords, pas de force
+    return createVector(0, 0);
+  }
+
   // APPLICATION DE FORCE - Ajoute une force à l'accélération
   applyForce(force) {
     this.acc.add(force);
