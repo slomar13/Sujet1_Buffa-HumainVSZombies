@@ -1,54 +1,80 @@
 <!DOCTYPE html>
 <html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Humain vs Zombies - Vampire Survivors Style</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-  <div id="gameContainer">
-    <div class="hud" id="hud">
-      <div>❤️ Vie: <span id="health">100</span></div>
-      <div>🏆 Score: <span id="score">0</span></div>
-      <div>🧟 Zombies: <span id="enemies">0</span></div>
-      <div>⏱️ Temps: <span id="time">0</span>s</div>
-    </div>
-    
-    <div class="controls">
-      <div class="slider-container">
-        <label>Vitesse zombies:</label>
-        <input type="range" id="enemySpeed" min="1" max="5" value="2" step="0.5">
-        <span id="enemySpeedValue">2</span>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Humain vs Zombies - Vampire Survivors Style</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div id="gameContainer">
+      <div class="hud" id="hud">
+        <div>❤️ Vie: <span id="health">100</span></div>
+        <div>🏆 Score: <span id="score">0</span></div>
+        <div>🧟 Zombies: <span id="enemies">0</span></div>
+        <div>⏱️ Temps: <span id="time">0</span>s</div>
       </div>
-      <div class="slider-container">
-        <label>Cadence tir:</label>
-        <input type="range" id="fireRate" min="10" max="100" value="30" step="10">
-        <span id="fireRateValue">30</span>
-      </div>
-      <div class="slider-container">
-        <label>Spawn zombies:</label>
-        <input type="range" id="spawnRate" min="30" max="180" value="90" step="15">
-        <span id="spawnRateValue">90</span>
-      </div>
-    </div>
-    
-    <div class="game-over" id="gameOver">
-      <h1>GAME OVER</h1>
-      <p>Vous avez été submergé par les zombies!</p>
-      <p>Score final: <span id="finalScore">0</span></p>
-      <p>Temps de survie: <span id="finalTime">0</span>s</p>
-      <button onclick="restartGame()">Rejouer</button>
-    </div>
-  </div>
 
-  <script src="boid.js"></script>
-  <script src="player.js"></script>
-  <script src="enemy.js"></script>
-  <script src="projectile.js"></script>
-  <script src="food.js"></script>
-  <script src="sketch.js"></script>
-  <script src="obstacle.js"></script>
-  <script src="librairies/p5.min.js"></script>
-</body>
+      <div class="infos">
+        <p>Appuyez sur "O" pour ajouter des obstacles</p>
+        <p>Appuyez sur "D" pour debugger</p>
+      </div>
+
+      <div class="controls">
+        <div class="slider-container">
+          <label>Vitesse zombies:</label>
+          <input
+            type="range"
+            id="enemySpeed"
+            min="1"
+            max="5"
+            value="2"
+            step="0.5"
+          />
+          <span id="enemySpeedValue">2</span>
+        </div>
+        <div class="slider-container">
+          <label>Cadence tir:</label>
+          <input
+            type="range"
+            id="fireRate"
+            min="10"
+            max="100"
+            value="30"
+            step="10"
+          />
+          <span id="fireRateValue">30</span>
+        </div>
+        <div class="slider-container">
+          <label>Spawn zombies:</label>
+          <input
+            type="range"
+            id="spawnRate"
+            min="30"
+            max="180"
+            value="90"
+            step="15"
+          />
+          <span id="spawnRateValue">90</span>
+        </div>
+      </div>
+
+      <div class="game-over" id="gameOver">
+        <h1>GAME OVER</h1>
+        <p>Vous avez été submergé par les zombies!</p>
+        <p>Score final: <span id="finalScore">0</span></p>
+        <p>Temps de survie: <span id="finalTime">0</span>s</p>
+        <button onclick="restartGame()">Rejouer</button>
+      </div>
+    </div>
+
+    <script src="boid.js"></script>
+    <script src="player.js"></script>
+    <script src="enemy.js"></script>
+    <script src="projectile.js"></script>
+    <script src="food.js"></script>
+    <script src="sketch.js"></script>
+    <script src="obstacle.js"></script>
+    <script src="librairies/p5.min.js"></script>
+  </body>
 </html>
