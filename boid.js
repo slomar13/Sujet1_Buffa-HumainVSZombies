@@ -125,4 +125,240 @@ class Boid {
     // On renvoie la force à appliquer au véhicule
     return force;
   }
+
+
+  // UTIL - Retourne le véhicule le plus proche d'un tableau de véhicules
+  getVehiculeLePlusProche(vehicules) {
+    let plusPetiteDistance = Infinity;
+    let vehiculeLePlusProche = null;
+    
+    vehicules.forEach(v => {
+      if (v != this) {
+        // Calcul de la distance euclidienne entre les deux positions
+        const distance = this.pos.dist(v.pos);
+        if (distance < plusPetiteDistance) {
+          plusPetiteDistance = distance;
+          vehiculeLePlusProche = v;
+        }
+      }
+    });
+    
+    return vehiculeLePlusProche;
+  }
+
+  // AVOID - Évite les obstacles devant le boid
+  avoid(obstacles) {
+    // Largeur de la zone d'évitement devant le boid
+    let largeurZoneEvitement = this.r * 2;
+    
+    // ====== CALCUL DES VECTEURS AHEAD (anticipation) ======
+    // ahead1 : regarde 30 frames devant
+    let ahead = this.vel.copy();
+    ahead.mult(30);
+    let pointAuBoutDeAhead = p5.Vector.add(this.pos, ahead);
+    
+    // ahead2 : regarde 15 frames devant (plus court)
+    let ahead2 = this.vel.copy();
+    ahead2.mult(15);
+    let pointAuBoutDeAhead2 = p5.Vector.add(this.pos, ahead2);
+    
+    // ====== MODE DEBUG : Visualisation ======
+    if (Boid.debug) {
+      // Vecteur ahead long (jaune)
+      push();
+      stroke(255, 255, 0);
+      strokeWeight(2);
+      line(this.pos.x, this.pos.y, pointAuBoutDeAhead.x, pointAuBoutDeAhead.y);
+      fill(255, 0, 0);
+      noStroke();
+      circle(pointAuBoutDeAhead.x, pointAuBoutDeAhead.y, 10);
+      pop();
+      
+      // Vecteur ahead court (violet)
+      push();
+      stroke(255, 0, 255);
+      strokeWeight(2);
+      line(this.pos.x, this.pos.y, pointAuBoutDeAhead2.x, pointAuBoutDeAhead2.y);
+      fill(0, 255, 255);
+      noStroke();
+      circle(pointAuBoutDeAhead2.x, pointAuBoutDeAhead2.y, 10);
+      pop();
+      
+      // Zone d'évitement
+      push();
+      stroke(255, 255, 255, 50);
+      strokeWeight(largeurZoneEvitement * 2);
+      line(this.pos.x, this.pos.y, pointAuBoutDeAhead.x, pointAuBoutDeAhead.y);
+      pop();
+    }
+    
+    // ====== RECHERCHE DE L'OBSTACLE LE PLUS PROCHE ======
+    let obstacleLePlusProche = null;
+    let distanceMin = Infinity;
+    
+    for (let obstacle of obstacles) {
+      let d = this.pos.dist(obstacle.pos);
+      if (d < distanceMin) {
+        distanceMin = d;
+        obstacleLePlusProche = obstacle;
+      }
+    }
+    
+    // Si aucun obstacle, pas de force d'évitement
+    if (!obstacleLePlusProche) {
+      return createVector(0, 0);
+    }
+    
+    // ====== CALCUL DES DISTANCES ======
+    let distance1 = obstacleLePlusProche.pos.dist(pointAuBoutDeAhead);
+    let distance2 = obstacleLePlusProche.pos.dist(pointAuBoutDeAhead2);
+    let distance3 = obstacleLePlusProche.pos.dist(this.pos);
+    
+    // Trouver le point le plus proche de l'obstacle
+    let pointLePlusProche = pointAuBoutDeAhead;
+    let distanceFinale = distance1;
+    
+    if (distance2 < distanceFinale) {
+      distanceFinale = distance2;
+      pointLePlusProche = pointAuBoutDeAhead2;
+    }
+    
+    if (distance3 < distanceFinale) {
+      distanceFinale = distance3;
+      pointLePlusProche = this.pos;
+    }
+    
+    // ====== CALCUL DE LA FORCE D'ÉVITEMENT ======
+    // Si on est dans la zone de danger
+    if (distanceFinale < obstacleLePlusProche.r + largeurZoneEvitement) {
+      // Vecteur qui part du centre de l'obstacle vers le point le plus proche
+      let force = p5.Vector.sub(pointLePlusProche, obstacleLePlusProche.pos);
+      
+      // Debug : afficher la force
+      if (Boid.debug) {
+        push();
+        stroke(255, 255, 0);
+        strokeWeight(3);
+        line(obstacleLePlusProche.pos.x, obstacleLePlusProche.pos.y, 
+             obstacleLePlusProche.pos.x + force.x, obstacleLePlusProche.pos.y + force.y);
+        pop();
+      }
+      
+      // Normaliser et appliquer la force maximale
+      force.setMag(this.maxForce);
+      return force;
+    }
+    
+    // Aucun danger, pas de force
+    return createVector(0, 0);
+  }
+
+  // SEPARATION - Évite les voisins trop proches (pour les ennemies)
+  separation(boids, perceptionRadius = 50) {
+    let steering = createVector();
+    let total = 0;
+
+    for (let other of boids) {
+      let d = dist(this.pos.x, this.pos.y, other.pos.x, other.pos.y);
+      if (other != this && d < perceptionRadius) {
+        // Vecteur pointant de l'autre boid vers ce boid (s'éloigner)
+        let diff = p5.Vector.sub(this.pos, other.pos);
+        // Plus le boid est proche, plus la force est forte (division par d²)
+        diff.div(d * d);
+        steering.add(diff);
+        total++;
+      }
+    }
+    
+    if (total > 0) {
+      // Moyenne des forces de répulsion
+      steering.div(total);
+      // Normalisation et application de la vitesse max
+      steering.setMag(this.maxSpeed);
+      // Calcul de la force de steering
+      steering.sub(this.vel);
+      steering.limit(this.maxForce);
+    }
+    
+    return steering;
+  }
+
+  // ALIGN - Aligne la direction avec les voisins (pour les ennemies)
+  align(boids, perceptionRadius = 50) {
+    let steering = createVector();
+    let total = 0;
+    
+    for (let other of boids) {
+      let d = dist(this.pos.x, this.pos.y, other.pos.x, other.pos.y);
+      if (other != this && d < perceptionRadius) {
+        steering.add(other.vel);
+        total++;
+      }
+    }
+    
+    if (total > 0) {
+      // Moyenne des vitesses des voisins
+      steering.div(total);
+      // Normalisation et application de la vitesse max
+      steering.setMag(this.maxSpeed);
+      // Calcul de la force de steering
+      steering.sub(this.vel);
+      steering.limit(this.maxForce);
+    }
+    
+    return steering;
+  }
+
+  // COHESION - Se dirige vers le centre des voisins (paour les ennemies)
+  cohesion(boids, perceptionRadius = 100) {
+    let steering = createVector();
+    let total = 0;
+
+    for (let other of boids) {
+      let d = dist(this.pos.x, this.pos.y, other.pos.x, other.pos.y);
+      if (other != this && d < perceptionRadius) {
+        steering.add(other.pos);
+        total++;
+      }
+    }
+    
+    if (total > 0) {
+      // Calcul du centre de masse (moyenne des positions)
+      steering.div(total);
+      // Utiliser SEEK pour se diriger vers ce point
+      steering.sub(this.pos);
+      steering.setMag(this.maxSpeed);
+      steering.sub(this.vel);
+      steering.limit(this.maxForce);
+    }
+    
+    return steering;
+  }
+
+  // APPLICATION DE FORCE - Ajoute une force à l'accélération
+  applyForce(force) {
+    this.acc.add(force);
+  }
+
+  // UPDATE - Intègre la physique (position, vitesse, reset acc)
+  update() {
+    // Mise à jour de la position en fonction de la vitesse
+    this.pos.add(this.vel);
+    
+    // Mise à jour de la vitesse en fonction de l'accélération
+    this.vel.add(this.acc);
+    
+    // Limitation de la vitesse à maxSpeed
+    this.vel.limit(this.maxSpeed);
+    
+    // Reset de l'accélération (elle sera recalculée à la prochaine frame)
+    this.acc.mult(0);
+  }
+
+  // SHOW - Dessine l'objet (à surcharger)
+  show() {
+    fill(255);
+    noStroke();
+    circle(this.pos.x, this.pos.y, this.r * 2);
+  }
 }
