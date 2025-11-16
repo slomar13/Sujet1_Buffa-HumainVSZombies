@@ -123,3 +123,26 @@ body {
   transform: scale(1.05);
   box-shadow: 0 0 15px rgba(76, 175, 80, 0.5);
 }
+
+.watermark {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-12deg);
+  font-size: 140px;
+  font-weight: 900;
+  background: linear-gradient(45deg, 
+    rgba(255, 0, 150, 0.2), 
+    rgba(0, 200, 255, 0.2),
+    rgba(255, 215, 0, 0.2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-family: 'Impact', 'Arial Black', sans-serif;
+  pointer-events: none;
+  user-select: none;
+  z-index: 1;
+  filter: drop-shadow(0 0 30px rgba(255, 255, 255, 0.2));
+  white-space: nowrap;
+  letter-spacing: 10px;
+}
